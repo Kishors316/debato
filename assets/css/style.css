@@ -8,8 +8,16 @@
 :root {
   --navy:        #15233A;
   --navy-soft:   #1E3356;
-  --coral:       #E8543A;
-  --coral-dark:  #CE4328;
+
+  /* Three coral tokens, not one. The brand colour is #E8543A, but at that
+     value white-on-coral is 3.65:1 and coral-on-cream is 3.32:1 — both under
+     the 4.5 that WCAG AA asks for body-sized text. So the brand value stays
+     for decorative use, and the two places the colour has to carry text get
+     shades dark enough to read. */
+  --coral:       #E8543A;   /* brand; decorative accents, focus ring */
+  --coral-btn:   #CC4A33;   /* solid button fill: white label at 4.57:1 */
+  --coral-dark:  #B03E29;   /* button hover */
+  --coral-text:  #C14630;   /* coral used AS text on cream: 4.57:1 */
   --blue:        #0076F4;
   --red:         #FE1519;
   --green:       #10B981;
@@ -21,13 +29,21 @@
 
   --text:        #15233A;
   --text-2:      #5A6473;
-  --text-3:      #8A93A3;
+  --text-3:      #69707C;
 
   --radius:      18px;
   --radius-sm:   12px;
   --radius-pill: 999px;
   --shadow:      0 1px 2px rgba(21,35,58,.04), 0 8px 24px rgba(21,35,58,.06);
   --shadow-lg:   0 2px 4px rgba(21,35,58,.05), 0 20px 48px rgba(21,35,58,.10);
+
+  /* The dark navy band. Its own tokens, because the band is a surface with
+     light text on it in BOTH themes — it must not follow the page's text
+     colour, and it must not be driven by --navy, which is a brand colour. */
+  --band-bg:     #15233A;
+  --band-text:   #FFFFFF;
+  --band-body:   #BFCADA;
+  --band-link:   #FFB9A8;
 
   --maxw:        1120px;
   --gutter:      20px;
@@ -46,7 +62,19 @@
     --text:        #F2F5FA;
     --text-2:      #A9B4C7;
     --text-3:      #7D8899;
-    --navy:        #F2F5FA;
+
+    /* --navy is NOT redefined here. It is a background in every place it is
+       used — the skip link, the step numbers and the band — so flipping it to
+       a light colour turned the band into white text on a white card. */
+
+    /* The page itself is navy in dark mode, so the band is lifted a few steps
+       to stay a distinct surface rather than dissolving into the background. */
+    --band-bg:     #1C2F4D;
+
+    /* Coral text goes the other way here: the shade that reads on cream is
+       too dark on navy, so it is lightened instead. 4.52:1 on a card. */
+    --coral-text:  #EB6750;
+
     --shadow:      0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.28);
     --shadow-lg:   0 2px 4px rgba(0,0,0,.35), 0 20px 48px rgba(0,0,0,.42);
   }
@@ -78,7 +106,7 @@ h2 { font-size: clamp(1.65rem, 4vw, 2.3rem); }
 h3 { font-size: 1.2rem; }
 p  { margin: 0 0 1em; }
 
-a { color: var(--coral); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a { color: var(--coral-text); text-decoration-thickness: 1px; text-underline-offset: 3px; }
 a:hover { color: var(--coral-dark); }
 
 img { max-width: 100%; height: auto; display: block; }
@@ -95,7 +123,7 @@ img { max-width: 100%; height: auto; display: block; }
 
 .eyebrow {
   display: inline-block; font-size: .78rem; font-weight: 700; letter-spacing: .09em;
-  text-transform: uppercase; color: var(--coral); margin-bottom: .7rem;
+  text-transform: uppercase; color: var(--coral-text); margin-bottom: .7rem;
 }
 .lede { font-size: 1.1rem; color: var(--text-2); max-width: 62ch; }
 
@@ -112,7 +140,7 @@ section { padding: clamp(52px, 8vw, 92px) 0; }
 }
 .btn:hover { transform: translateY(-1px); }
 .btn:active { transform: translateY(0); }
-.btn-primary { background: var(--coral); color: #fff; box-shadow: 0 6px 18px rgba(232,84,58,.3); }
+.btn-primary { background: var(--coral-btn); color: #fff; box-shadow: 0 6px 18px rgba(232,84,58,.28); }
 .btn-primary:hover { background: var(--coral-dark); color: #fff; }
 .btn-ghost { background: transparent; color: var(--text); border-color: var(--border); }
 .btn-ghost:hover { color: var(--text); border-color: var(--text-3); background: var(--surface); }
@@ -140,6 +168,11 @@ section { padding: clamp(52px, 8vw, 92px) 0; }
   padding: 9px 13px; border-radius: var(--radius-sm);
 }
 .nav a:hover { color: var(--text); background: var(--surface); }
+/* `.nav a` outranks `.btn-primary` on specificity, which quietly repainted
+   the header button's label in muted body grey — 1.74:1 on coral. These two
+   put it back and stop the hover rule stripping it again. */
+.nav a.btn-primary, .nav a.btn-primary:hover { color: #fff; background: var(--coral-btn); }
+.nav a.btn-primary:hover { background: var(--coral-dark); }
 .nav .btn { margin-left: 8px; }
 
 /* The nav links collapse on phones; the Play button is the one thing that
@@ -243,10 +276,21 @@ section { padding: clamp(52px, 8vw, 92px) 0; }
 
 /* ── band ───────────────────────────────────────────────────────────────── */
 
-.band { background: var(--navy); color: #F2F5FA; border-radius: var(--radius); padding: clamp(30px, 5vw, 48px); }
-.band h2 { color: #fff; }
-.band p { color: #BFCADA; }
-.band a:not(.btn) { color: #FFB9A8; }
+.band {
+  background: var(--band-bg);
+  color: var(--band-text);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: clamp(30px, 5vw, 48px);
+}
+.band h2 { color: var(--band-text); }
+.band p  { color: var(--band-body); }
+.band a:not(.btn) { color: var(--band-link); }
+
+/* A navy band on a navy page needs an edge to read as a separate surface. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .band { border-color: #2C4166; }
+}
 
 /* ── support ────────────────────────────────────────────────────────────── */
 
@@ -265,7 +309,7 @@ section { padding: clamp(52px, 8vw, 92px) 0; }
 .footer-grid { display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-between; align-items: flex-start; }
 .footer-links { display: flex; flex-wrap: wrap; gap: 18px; }
 .footer-links a { color: var(--text-2); text-decoration: none; font-size: .94rem; }
-.footer-links a:hover { color: var(--coral); text-decoration: underline; }
+.footer-links a:hover { color: var(--coral-text); text-decoration: underline; }
 .footer-note { color: var(--text-3); font-size: .86rem; margin: 22px 0 0; }
 
 /* ── legal pages ────────────────────────────────────────────────────────── */
@@ -285,7 +329,7 @@ section { padding: clamp(52px, 8vw, 92px) 0; }
 .toc ol { margin: 0; padding-left: 1.2em; columns: 2; column-gap: 28px; }
 .toc li { margin-bottom: .35em; break-inside: avoid; }
 .toc a { color: var(--text-2); text-decoration: none; font-size: .94rem; }
-.toc a:hover { color: var(--coral); text-decoration: underline; }
+.toc a:hover { color: var(--coral-text); text-decoration: underline; }
 @media (max-width: 620px) { .toc ol { columns: 1; } }
 
 .callout {
